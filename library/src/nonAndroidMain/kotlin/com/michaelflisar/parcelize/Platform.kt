@@ -1,8 +1,8 @@
 package com.michaelflisar.parcelize
 
-//actual interface Parcelize
 actual interface Parcelable
-//actual interface IgnoredOnParcel
+actual annotation class IgnoredOnParcel
+actual annotation class Parcelize
 
 
 
