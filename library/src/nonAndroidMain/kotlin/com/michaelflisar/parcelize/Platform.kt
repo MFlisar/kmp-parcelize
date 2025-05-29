@@ -1,8 +1,15 @@
 package com.michaelflisar.parcelize
 
-actual interface Parcelable
-actual annotation class IgnoredOnParcel
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.BINARY)
 actual annotation class Parcelize
+
+actual interface Parcelable
+
+@Target(AnnotationTarget.PROPERTY)
+@Retention(AnnotationRetention.SOURCE)
+actual annotation class IgnoredOnParcel
+
 
 
 

@@ -10,7 +10,6 @@ plugins {
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.dokka)
     alias(libs.plugins.gradle.maven.publish.plugin)
-    alias(libs.plugins.binary.compatibility.validator)
 }
 
 // -------------------
@@ -89,6 +88,11 @@ kotlin {
     // -------
 
     kotlin {
+
+        compilerOptions {
+            freeCompilerArgs.add("-Xexpect-actual-classes")
+        }
+
         sourceSets {
 
             val commonMain by getting {
@@ -97,11 +101,11 @@ kotlin {
                 }
             }
 
-            val nonAndroidMain by creating {
+            val androidMain by getting {
                 dependsOn(commonMain)
             }
 
-            val androidMain by getting {
+            val nonAndroidMain by creating {
                 dependsOn(commonMain)
             }
 
