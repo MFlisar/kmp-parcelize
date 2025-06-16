@@ -1,3 +1,3 @@
-You can find the documentation here:
+Simple multiplatform definitions with aliases so that parcelize can be used inside a KMP project.
 
-[Documentation](https://mflisar.github.io/Lumberjack/)
+Is used in all my KMP projects if necessary.

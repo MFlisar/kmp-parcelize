@@ -16,7 +16,7 @@ plugins {
 // Informations
 // -------------------
 
-val description = "a kmp parcelize implementation that works on all platforms"
+val description = "kmp parcelize - use parcelize inside common kmp code"
 
 // Module
 val artifactId = "library"
