@@ -1,10 +1,10 @@
 package com.michaelflisar.parcelize
 
+expect interface Parcelable
+
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
 expect annotation class Parcelize()
-
-expect interface Parcelable
 
 @Target(AnnotationTarget.PROPERTY)
 @Retention(AnnotationRetention.SOURCE)
