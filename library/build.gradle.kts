@@ -1,8 +1,7 @@
-import com.vanniktech.maven.publish.JavadocJar
-import com.vanniktech.maven.publish.KotlinMultiplatform
-import com.vanniktech.maven.publish.SonatypeHost
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import com.michaelflisar.kmplibrary.BuildFilePlugin
+import com.michaelflisar.kmplibrary.setupDependencies
+import com.michaelflisar.kmplibrary.Target
+import com.michaelflisar.kmplibrary.Targets
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -10,26 +9,28 @@ plugins {
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.dokka)
     alias(libs.plugins.gradle.maven.publish.plugin)
+    alias(deps.plugins.kmplibrary.buildplugin)
 }
+
+// get build file plugin
+val buildFilePlugin = project.plugins.getPlugin(BuildFilePlugin::class.java)
 
 // -------------------
 // Informations
 // -------------------
 
-val description = "kmp parcelize - use parcelize inside common kmp code"
-
-// Module
-val artifactId = "library"
 val androidNamespace = "com.michaelflisar.parcelize"
 
-// Library 
-val libraryName = "kmp-parcelize"
-val libraryDescription = "KMP Parcelize - $artifactId module - $description"
-val groupID = "io.github.mflisar.parcelize"
-val release = 2016
-val github = "https://github.com/MFlisar/kmp-parcelize"
-val license = "Apache License 2.0"
-val licenseUrl = "$github/blob/main/LICENSE"
+val buildTargets = Targets(
+    // mobile
+    android = true,
+    iOS = true,
+    // desktop
+    windows = true,
+    macOS = true,
+    // web
+    wasm = true
+)
 
 // -------------------
 // Setup
@@ -37,36 +38,11 @@ val licenseUrl = "$github/blob/main/LICENSE"
 
 kotlin {
 
-    // Java
-    jvm()
+    //-------------
+    // Targets
+    //-------------
 
-    // Android
-    androidTarget {
-        publishLibraryVariants("release")
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-            freeCompilerArgs.addAll("-P", "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=com.michaelflisar.parcelize.Parcelize")
-        }
-    }
-
-    // iOS
-    macosX64()
-    macosArm64()
-    iosArm64()
-    iosX64()
-    iosSimulatorArm64()
-
-    // web
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        nodejs()
-    }
-
-    // javascript
-    js(IR) {
-        nodejs {}
-        browser {}
-    }
+    buildFilePlugin.setupTargetsLibrary(buildTargets)
 
     // -------
     // Sources
@@ -80,114 +56,37 @@ kotlin {
 
         sourceSets {
 
-            val commonMain by getting {
-                dependencies {
+            // ---------------------
+            // custom source sets
+            // ---------------------
 
-                }
-            }
+            val nonAndroidMain by creating { dependsOn(commonMain.get()) }
 
-            val androidMain by getting {
-                dependsOn(commonMain)
-            }
+            nonAndroidMain.setupDependencies(sourceSets, buildTargets, listOf(Target.ANDROID), targetsNotSupported = true)
 
-            val nonAndroidMain by creating {
-                dependsOn(commonMain)
-            }
+            // ---------------------
+            // dependencies
+            // ---------------------
 
-            val jvmMain by getting {
-                dependsOn(nonAndroidMain)
-            }
-
-            val jsMain by getting {
-                dependsOn(nonAndroidMain)
-            }
-
-            val wasmJsMain by getting {
-                dependsOn(nonAndroidMain)
-            }
-
-            val iosArm64Main by getting {
-                dependsOn(nonAndroidMain)
-            }
-
-            val iosX64Main by getting {
-                dependsOn(nonAndroidMain)
-            }
-
-            val iosSimulatorArm64Main by getting {
-                dependsOn(nonAndroidMain)
-            }
-
-            val macosArm64Main by getting {
-                dependsOn(nonAndroidMain)
-            }
-
-            val macosX64Main by getting {
-                dependsOn(nonAndroidMain)
-            }
+            // --
         }
     }
 }
 
+// -------------------
+// Configurations
+// -------------------
+
+// android configuration
 android {
-    namespace = androidNamespace
-
-    compileSdk = app.versions.compileSdk.get().toInt()
-
-    defaultConfig {
-        minSdk = app.versions.minSdk.get().toInt()
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
+    buildFilePlugin.setupAndroidLibrary(
+        androidNamespace = androidNamespace,
+        compileSdk = app.versions.compileSdk,
+        minSdk = app.versions.minSdk,
+        buildConfig = false
+    )
 }
 
-mavenPublishing {
-
-    configure(
-        KotlinMultiplatform(
-            javadocJar = JavadocJar.Dokka("dokkaHtml"),
-            sourcesJar = true
-        )
-    )
-
-    coordinates(
-        groupId = groupID,
-        artifactId = artifactId,
-        version = System.getenv("TAG")
-    )
-
-    pom {
-        name.set(libraryName)
-        description.set(libraryDescription)
-        inceptionYear.set("$release")
-        url.set(github)
-
-        licenses {
-            license {
-                name.set(license)
-                url.set(licenseUrl)
-            }
-        }
-
-        developers {
-            developer {
-                id.set("mflisar")
-                name.set("Michael Flisar")
-                email.set("mflisar.development@gmail.com")
-            }
-        }
-
-        scm {
-            url.set(github)
-        }
-    }
-
-    // Configure publishing to Maven Central
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, true)
-
-    // Enable GPG signing for all publications
-    signAllPublications()
-}
+// maven publish configuration
+if (buildFilePlugin.checkGradleProperty("publishToMaven") != false)
+    buildFilePlugin.setupMavenPublish()

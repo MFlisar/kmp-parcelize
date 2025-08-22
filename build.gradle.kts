@@ -10,4 +10,24 @@ plugins {
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.parcelize) apply false
     alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.gradle.maven.publish.plugin) apply false
+    alias(libs.plugins.dokka) apply false
+    alias(deps.plugins.kmplibrary.buildplugin) apply false
 }
+
+// ------------------------
+// Build mkdocs
+// ------------------------
+
+buildscript {
+    dependencies {
+        classpath(deps.kmplibrary.docs)
+    }
+}
+
+com.michaelflisar.kmplibrary.docs.registerBuildDocsTasks(
+    tasks = tasks,
+    project = project,
+    relativeModulesPath = "library",
+    relativeDemosPath = "demo"
+)
