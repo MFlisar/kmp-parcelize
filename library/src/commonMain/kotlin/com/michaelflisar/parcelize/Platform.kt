@@ -10,5 +10,9 @@ expect annotation class Parcelize()
 @Retention(AnnotationRetention.SOURCE)
 expect annotation class IgnoredOnParcel()
 
+@Target(AnnotationTarget.TYPE)
+@Retention(AnnotationRetention.BINARY)
+expect annotation class RawValue
+
 
 
